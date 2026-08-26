@@ -1,0 +1,39 @@
+name: CI/CD Pipeline - Deploy HTML to GitHub Pages
+
+# 1. Sự kiện kích hoạt (Trigger)
+on:
+  push:
+    branches: ["main"] # Kịch bản này tự động chạy mỗi khi có code mới đẩy lên nhánh 'main'
+
+# 2. Cấp quyền cho hệ thống tự động
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 3. Các công việc cần làm (Jobs)
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    # GitHub sẽ tự động cấp 1 máy chủ ảo Linux (Ubuntu) để làm việc này
+    runs-on: ubuntu-latest 
+
+    # Các bước thực hiện (Pipeline Steps)
+    steps:
+      - name: Bước 1 - Checkout mã nguồn từ kho lưu trữ
+        uses: actions/checkout@v4
+
+      - name: Bước 2 - Thiết lập môi trường GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Bước 3 - Đóng gói toàn bộ file HTML/CSS
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.' 
+
+      - name: Bước 4 - Triển khai (Deploy) lên server thực tế
+        id: deployment
+        uses: actions/deploy-pages@v4
