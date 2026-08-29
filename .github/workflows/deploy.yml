@@ -3,7 +3,9 @@ name: CI/CD Pipeline - Deploy HTML to GitHub Pages
 # 1. Sự kiện kích hoạt (Trigger)
 on:
   push:
-    branches: ["main"] # Kịch bản này tự động chạy mỗi khi có code mới đẩy lên nhánh 'main'
+    branches: ["main"] # Tự động chạy mỗi khi có code mới đẩy lên nhánh 'main'
+  pull_request:
+    branches: ["main"] # Kích hoạt khi có yêu cầu trộn code (Pull Request) vào 'main'
 
 # 2. Cấp quyền cho hệ thống tự động
 permissions:
@@ -13,14 +15,32 @@ permissions:
 
 # 3. Các công việc cần làm (Jobs)
 jobs:
+  # --- JOB 1: KIỂM TRA LỖI CODE (CI) ---
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Đã đồng bộ lên v4
+
+      - name: Setup Node.js (Môi trường chạy linter)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Cài đặt HTMLHint
+        run: npm install -g htmlhint
+
+      - name: Kiểm tra lỗi cú pháp file HTML
+        run: htmlhint "**/*.html"
+
+  # --- JOB 2: ĐÓNG GÓI VÀ TRIỂN KHAI (CD) ---
   deploy:
+    needs: test-and-lint # Bắt buộc Job CI phía trên thành công (tick xanh) thì mới chạy Job này
+    runs-on: ubuntu-latest # Đã giữ lại 1 dòng duy nhất
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     
-    # GitHub sẽ tự động cấp 1 máy chủ ảo Linux (Ubuntu) để làm việc này
-    runs-on: ubuntu-latest 
-
     # Các bước thực hiện (Pipeline Steps)
     steps:
       - name: Bước 1 - Checkout mã nguồn từ kho lưu trữ
