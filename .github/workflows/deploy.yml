@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4 # Đã đồng bộ lên v4
 
       - name: Setup Node.js (Môi trường chạy linter)
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
